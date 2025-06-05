@@ -1,0 +1,9 @@
+# Ignore virtual environment
+.venv/
+
+# Ignore all files in logs/ but not the folder
+logs/*
+!logs/.gitkeep
+
+# Ignore the entire test folder
+test/
