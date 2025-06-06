@@ -8,16 +8,17 @@ def setup_logger(name="Logger"):
     date_str = now.strftime("%Y-%m-%d")
     time_str = now.strftime("%H-%M-%S")
 
-    # Create directory: logs/YYYY-MM-DD/
-    log_dir = os.path.join("logs", date_str)
+    # Folder path relative to this file
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    log_dir = os.path.join(base_dir, "logs", date_str)
     os.makedirs(log_dir, exist_ok=True)
 
-    # Log file path: logs/YYYY-MM-DD/YYYY-MM-DD_HH-MM-SS.log
+    # Full log file path
     log_filename = os.path.join(log_dir, f"{date_str}_{time_str}.log")
 
     # Create logger
     logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)  # You can change to INFO/ERROR as needed
+    logger.setLevel(logging.DEBUG)
 
     # Prevent duplicate handlers
     if not logger.handlers:
@@ -35,7 +36,6 @@ def setup_logger(name="Logger"):
             "%(levelname)s | %(message)s"
         ))
 
-        # Add handlers
         logger.addHandler(file_handler)
         logger.addHandler(console_handler)
 

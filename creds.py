@@ -3,20 +3,22 @@ port = 7497
 host = "127.0.0.1"
 data_type = 4
 instrument = "SPX"
-trading_class = "OESX"
-exchange = "CBOE"
+exchange = "SMART"
 currency = "USD"
 strike_interval = 5
 STP_enabled = True
 close_positions = False
-enable_logging = False
+enable_logging = True
 calc_values = True
 close_hedges = True
-WEBHOOK_URL = "https://discord.com/api/webhooks/1338574580876447907/0oLw18E0PXFac0-1Q1c9e4KYaloESxRCJDt81s1fZTpEfoWBkiodRGlN12RZVNTiIjbn"
+WEBHOOK_URL = "https://discord.com/api/webhooks/1338550862922125382/ngLa-LmVaolmdMDeNV4f4jTEhzhCJwvZXsSrpHiYcZmWIhYEQ9ef4elRQB0Kf1PmYG5B"
 
 # Changeable Values
 date = "20250606"                   # Date of contract (YYYY-MM-DD)
-number_of_re_entry = 1              # Specifies the number of re-entries allowed
+CE_SELL_REENTRY = 1
+CE_BUY_REENTRY = 1
+PE_SELL_REENTRY = 1
+PE_BUY_REENTRY = 1
 OTM_CALL_HEDGE = 10                # How far away the call hedge is (10 means that its $50 away from current price)
 OTM_PUT_HEDGE = 10                 # How far away the put hedge is (10 means that its $50 away from current price)
 ATM_CALL = 5                        # How far away call position is (2 means that its $10 away from current price)
@@ -43,6 +45,5 @@ call_strike = 19500
 put_hedge = 19490
 put_strike = 19500
 call_check_time = 1
-call_reentry_time = 5
 put_check_time = 1
-put_reentry_time = 5
+
