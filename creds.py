@@ -9,26 +9,10 @@ strike_interval = 5
 STP_enabled = True
 close_positions = False
 enable_logging = True
-calc_values = True
-close_hedges = True
 WEBHOOK_URL = "https://discord.com/api/webhooks/1338550862922125382/ngLa-LmVaolmdMDeNV4f4jTEhzhCJwvZXsSrpHiYcZmWIhYEQ9ef4elRQB0Kf1PmYG5B"
 
-# Changeable Values
-date = "20250606"                   # Date of contract (YYYY-MM-DD)
-CE_SELL_REENTRY = 1
-CE_BUY_REENTRY = 1
-PE_SELL_REENTRY = 1
-PE_BUY_REENTRY = 1
-OTM_CALL_HEDGE = 10                # How far away the call hedge is (10 means that its $50 away from current price)
-OTM_PUT_HEDGE = 10                 # How far away the put hedge is (10 means that its $50 away from current price)
-ATM_CALL = 5                        # How far away call position is (2 means that its $10 away from current price)
-ATM_PUT = 5                         # How far away put position is (2 means that its $10 away from current price)
-call_sl = 30                        # From where the call stop loss should start from (15 here means 15% of entry price)
-call_entry_price_changes_by = 10     # What % should call entry premium price should change by to update the trailing %
-call_change_sl_by = 10               # What % of entry price should call sl change when trailing stop loss updates
-put_sl = 30                         # From where the put stop loss should start from (15 here means 15% of entry price)
-put_entry_price_changes_by = 10      # What % should put entry premium price should change by to update the trailing %
-put_change_sl_by = 10                # What % of entry price should put sl change when trailing stop loss updates
+# Global Values
+date = "20250609"                # Date of contract (YYYY-MM-DD)
 conversion_time = 10                # Deprecated (No use)
 entry_hour = 9                      # Entry time in hours
 entry_minute = 30                   # Entry time in minutes
@@ -36,14 +20,41 @@ entry_second = 59                    # Entry time in seconds
 exit_hour = 14                     # Exit time in hours
 exit_minute = 30                    # Exit time in minutes
 exit_second = 00                     # Exit time in seconds
-call_hedge_quantity = 1             # Quantity for call hedge
-put_hedge_quantity = 1              # Quantity for put hedge
-call_position = 1                   # Quantity for call position
-put_position = 1                    # Quantity for put position
-call_hedge = 19510
-call_strike = 19500
-put_hedge = 19490
-put_strike = 19500
 call_check_time = 1
 put_check_time = 1
 
+#Hedges
+OTM_CALL_HEDGE = 10                # How far away the call hedge is (10 means that its $50 away from current price)
+OTM_PUT_HEDGE = 10                 # How far away the put hedge is (10 means that its $50 away from current price)
+close_hedges = True
+active_close_hedges = True # To be implemented
+call_hedge_quantity = 1             # Quantity for call hedge
+put_hedge_quantity = 1              # Quantity for put hedge
+
+#SELL SIDE
+CE_SELL_REENTRY = 1
+PE_SELL_REENTRY = 1
+ATM_CALL_SELL = 5                       # How far away call position is (2 means that its $10 away from current price)
+ATM_PUT_SELL = 5
+call_sl_sell = 30
+put_sl_sell = 30
+sell_put_entry_price_changes_by = 10      # What % should put entry premium price should change by to update the trailing %
+sell_put_change_sl_by = 10                # What % of entry price should put sl change when trailing stop loss updates
+sell_call_entry_price_changes_by = 10     # What % should call entry premium price should change by to update the trailing %
+sell_call_change_sl_by = 10               # What % of entry price should call sl change when trailing stop loss updates
+sell_call_position_quantity = 1                   # Quantity for call position
+sell_put_position_quantity = 1                    # Quantity for put position
+
+#BUY SIDE
+CE_BUY_REENTRY = 1
+PE_BUY_REENTRY = 1
+ATM_CALL_BUY = 5                       # How far away call position is (2 means that its $10 away from current price)
+ATM_PUT_BUY = 5                         # How far away put position is (2 means that its $10 away from current price)
+call_sl_buy = 30                            # From where the call stop loss should start from (15 here means 15% of entry price)
+put_sl_buy = 30                         # From where the put stop loss should start from (15 here means 15% of entry price)
+buy_put_entry_price_changes_by = 10      # What % should put entry premium price should change by to update the trailing %
+buy_put_change_sl_by = 10                # What % of entry price should put sl change when trailing stop loss updates
+buy_call_entry_price_changes_by = 10     # What % should call entry premium price should change by to update the trailing %
+buy_call_change_sl_by = 10               # What % of entry price should call sl change when trailing stop loss updates
+buy_call_position_quantity = 1                   # Quantity for call position
+buy_put_position_quantity = 1                    # Quantity for put position

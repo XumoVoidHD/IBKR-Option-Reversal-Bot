@@ -88,7 +88,11 @@ class Strategy:
     async def place_call_order(self, side: str):
         current_price = await self.get_current_price()
         closest_current_price = await self.get_closest_price(current_price)
-        leg_target_price = closest_current_price + (creds.strike_interval * creds.ATM_CALL)
+        leg_target_price = 0
+        if side == "SELL":
+            leg_target_price = closest_current_price - (creds.strike_interval * creds.ATM_CALL_SELL)
+        elif side == "BUY":
+            leg_target_price = closest_current_price - (creds.strike_interval * creds.ATM_CALL_BUY)
         hedge_target_price = closest_current_price + (creds.strike_interval * creds.OTM_CALL_HEDGE)
 
         print(f"Leg: {leg_target_price} Hedge: {leg_target_price}")
@@ -98,9 +102,10 @@ class Strategy:
                                    quantity=creds.call_hedge_quantity)
             await self.dprint("Call Hedge Placed")
 
+        quantity = creds.sell_call_position_quantity if side == "SELL" else creds.buy_call_position_quantity
         self.call_contract, self.atm_call_fill = await self.place_order(side=side.upper(), type="C",
                                                                         strike=leg_target_price,
-                                                                        quantity=creds.call_position)
+                                                                        quantity=quantity)
         if side.upper() == "SELL":
             self.atm_call_sl = round(self.atm_call_fill * (1 + (self.call_percent / 100)), 1)
         elif side.upper() == "BUY":
@@ -112,7 +117,7 @@ class Strategy:
         if creds.STP_enabled:
             stp_side = "BUY" if side == "SELL" else "SELL"
             call_stp_id = await self.broker.place_stp_order(contract=self.call_contract, side=stp_side,
-                                                            quantity=creds.call_position,
+                                                            quantity=quantity,
                                                             sl=self.atm_call_sl)
             while True:
                 premium_price = await self.broker.get_latest_premium_price(
@@ -123,14 +128,15 @@ class Strategy:
                 )
 
                 if ((premium_price['ask'] <= self.atm_call_fill - temp_percentage * (
-                        creds.call_entry_price_changes_by / 100) * self.atm_call_fill and side == "SELL") or
+                        creds.sell_call_entry_price_changes_by / 100) * self.atm_call_fill and side == "SELL") or
                         (premium_price['bid'] >= self.atm_call_fill - temp_percentage * (
-                                creds.call_entry_price_changes_by / 100) * self.atm_call_fill and side == "BUY")):
+                                creds.buy_call_entry_price_changes_by / 100) * self.atm_call_fill and side == "BUY")):
 
                     if side == "SELL":
-                        self.atm_call_sl = self.atm_call_sl - (self.atm_call_fill * (creds.call_change_sl_by / 100))
+                        self.atm_call_sl = self.atm_call_sl - (
+                                    self.atm_call_fill * (creds.sell_call_change_sl_by / 100))
                     elif side == "BUY":
-                        self.atm_call_sl = self.atm_call_sl + (self.atm_call_fill * (creds.call_change_sl_by / 100))
+                        self.atm_call_sl = self.atm_call_sl + (self.atm_call_fill * (creds.buy_call_change_sl_by / 100))
 
                     await self.dprint(
                         f"[CALL] Price dip detected - Adjusting trailing parameters"
@@ -140,7 +146,7 @@ class Strategy:
                         f"\nTemp value: {temp_percentage}"
                     )
                     await self.broker.modify_stp_order(contract=self.call_contract, side=stp_side,
-                                                       quantity=creds.call_position, sl=self.atm_call_sl,
+                                                       quantity=quantity, sl=self.atm_call_sl,
                                                        order_id=call_stp_id)
                     temp_percentage += 1
                     continue
@@ -163,7 +169,7 @@ class Strategy:
                         f"\nCurrent Premium: {premium_price['mid']}"
                         f"\nStop Loss Level: {self.atm_call_sl}"
                         f"\nStrike Price: {leg_target_price}"
-                        f"\nPosition Size: {creds.call_position}"
+                        f"\nPosition Size: {quantity}"
                     )
                     return
 
@@ -221,8 +227,12 @@ class Strategy:
     async def place_put_order(self, side: str):
         current_price = await self.get_current_price()
         closest_current_price = await self.get_closest_price(current_price)
-        leg_target_price = closest_current_price + (creds.strike_interval * creds.ATM_PUT)
-        hedge_target_price = closest_current_price + (creds.strike_interval * creds.OTM_PUT_HEDGE)
+        leg_target_price = 0
+        if side == "SELL":
+            leg_target_price = closest_current_price - (creds.strike_interval * creds.ATM_PUT_SELL)
+        elif side == "BUY":
+            leg_target_price = closest_current_price - (creds.strike_interval * creds.ATM_PUT_BUY)
+        hedge_target_price = closest_current_price - (creds.strike_interval * creds.OTM_PUT_HEDGE)
 
         print(f"Leg: {leg_target_price} Hedge: {leg_target_price}")
 
@@ -231,9 +241,10 @@ class Strategy:
                                    quantity=creds.put_hedge_quantity)
             await self.dprint("Put Hedge Placed")
 
+        quantity = creds.sell_call_position_quantity if side == "SELL" else creds.buy_call_position_quantity
         self.put_contract, self.atm_put_fill = await self.place_order(side=side.upper(), type="P",
                                                                       strike=leg_target_price,
-                                                                      quantity=creds.put_position)
+                                                                      quantity=quantity)
         if side.upper() == "SELL":
             self.atm_put_sl = round(self.atm_put_fill * (1 + (self.put_percent / 100)), 1)
         elif side.upper() == "BUY":
@@ -245,7 +256,7 @@ class Strategy:
         if creds.STP_enabled:
             stp_side = "BUY" if side == "SELL" else "SELL"
             put_stp_id = await self.broker.place_stp_order(contract=self.put_contract, side=stp_side,
-                                                           quantity=creds.put_position,
+                                                           quantity=quantity,
                                                            sl=self.atm_put_sl)
             while True:
                 premium_price = await self.broker.get_latest_premium_price(
@@ -310,7 +321,7 @@ class Strategy:
                     right="P"
                 )
 
-                if ((premium_price['ask'] >= self.atm_put_sl and side == "SELL") or (premium_price["bid"] <=
+                if ((premium_price['bid'] >= self.atm_put_sl and side == "SELL") or (premium_price["ask"] <=
                                                                                      self.atm_put_sl
                                                                                      and side == "BUY")):
                     await self.dprint(
@@ -330,7 +341,7 @@ class Strategy:
 
                 if ((premium_price['ask'] <= self.atm_put_fill - temp_percentage * (
                         creds.put_entry_price_changes_by / 100) * self.atm_put_fill and side == "SELL") or
-                        (premium_price['bid'] >= self.atm_put_fill - temp_percentage * (
+                        (premium_price['bid'] >= self.atm_put_fill + temp_percentage * (
                                 creds.put_entry_price_changes_by / 100) * self.atm_put_fill and side == "BUY")):
 
                     if side == "SELL":
@@ -393,6 +404,16 @@ class Strategy:
 
                 await asyncio.sleep(10)
 
+    async def open_hedges(self):
+        current_price = await self.get_current_price()
+        closest_current_price = await self.get_closest_price(current_price)
+        hedge_call_target_price = closest_current_price + (creds.strike_interval * creds.OTM_CALL_HEDGE)
+        hedge_put_target_price = closest_current_price + (creds.strike_interval * creds.OTM_CALL_HEDGE)
+        await asyncio.gather(
+            self.place_order(side="BUY", type="C", strike=hedge_call_target_price, quantity=creds.call_hedge_quantity),
+            self.place_order(side="BUY", type="P", strike=hedge_put_target_price, quantity=creds.put_hedge_quantity)
+        )
+
     async def main(self):
         await send_discord_message("." * 100)
         await self.dprint("\n1. Testing connection...")
@@ -422,6 +443,13 @@ class Strategy:
                 microsecond=0)
             await self.dprint(f"Current Time: {current_time}")
             if (start_time <= current_time <= closing_time) or self.testing:
+                if creds.active_close_hedges:  # if active_close_hedges is false then don't open the hedges at all
+                    if not creds.close_hedges:
+                        await self.open_hedges()
+                    else:
+                        pass
+                    # And close_hedges is true then close and open hedges accordingly
+                    # And if close-hedges is False then just open the hedges but don't close them
                 await asyncio.gather(
                     self.call_side_handler(),
                     self.put_side_handler(),
