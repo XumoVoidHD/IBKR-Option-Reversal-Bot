@@ -6,7 +6,6 @@ instrument = "SPX"
 exchange = "SMART"
 currency = "USD"
 strike_interval = 5
-STP_enabled = True
 close_positions = False
 enable_logging = True
 WEBHOOK_URL = "https://discord.com/api/webhooks/1338550862922125382/ngLa-LmVaolmdMDeNV4f4jTEhzhCJwvZXsSrpHiYcZmWIhYEQ9ef4elRQB0Kf1PmYG5B"
