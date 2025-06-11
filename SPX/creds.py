@@ -1,12 +1,10 @@
 # Default Values
 port = 7497
 host = "127.0.0.1"
-data_type = 4
 instrument = "SPX"
 exchange = "SMART"
 currency = "USD"
 strike_interval = 5
-close_positions = False
 enable_logging = True
 WEBHOOK_URL = "https://discord.com/api/webhooks/1381257682404769903/vwldqh92SDVPVBTpNviTD_by7iUe3biGAxNrGbI1QteydH8Lbw_iYmEG2Q2Q0FRT1sua"
 
@@ -15,7 +13,7 @@ date = "20250611"                # Date of contract (YYYY-MM-DD)
 entry_hour = 9                      # Entry time in hours
 entry_minute = 30                   # Entry time in minutes
 entry_second = 59                    # Entry time in seconds
-exit_hour = 14                     # Exit time in hours
+exit_hour = 16                     # Exit time in hours
 exit_minute = 30                    # Exit time in minutes
 exit_second = 00                     # Exit time in seconds
 call_check_time = 1

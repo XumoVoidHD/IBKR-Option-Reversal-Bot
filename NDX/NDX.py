@@ -57,10 +57,17 @@ class Strategy:
             self.logger.info(phrase)
 
     async def get_closest_price(self, price: int) -> int:
-        return min(self.strikes, key=lambda x: abs(x - price))
+        closest_strike = -1
+        temp = min(self.strikes, key=lambda x: abs(x - price))
+        if str(int(temp)).endswith("75"):
+            closest_strike = (temp // 10) * 10
+        elif str(int(temp)).endswith("25"):
+            closest_strike = (temp // 10) * 10
+
+        return closest_strike
 
     async def get_current_price(self) -> int:
-        current_price = await self.broker.current_price(creds.instrument, creds.exchange)
+        current_price = await self.broker.current_price(creds.instrument, "NASDAQ")
         return int(current_price)
 
     async def place_order(self, side: str, type: str, strike: int, quantity: int):
@@ -77,7 +84,15 @@ class Strategy:
         try:
             k = await self.broker.place_market_order(contract=contract, qty=quantity, side=side.upper())
             fill = k[1]
-            await self.dprint(f"Placing Order: {contract}")
+            await self.dprint(f"""Placing Order: 
+                                Symbol: {contract.symbol}
+                                Expiry: {contract.lastTradeDateOrContractMonth}
+                                Strike: {contract.strike}
+                                Right: {contract.right}
+                                Exchange: {contract.exchange}
+                                Currency: {contract.currency}
+                                Multiplier: {contract.multiplier}
+                                """)
 
             return contract, fill
         except Exception as e:
@@ -97,7 +112,7 @@ class Strategy:
 
         hedge_target_price = closest_current_price + (creds.strike_interval * creds.OTM_CALL_HEDGE)
 
-        print(f"Leg: {leg_target_price} Hedge: {leg_target_price}")
+        await self.dprint(f"Leg: {leg_target_price} Hedge: {leg_target_price}")
 
         if creds.close_hedges and side.upper() == "SELL" and creds.active_close_hedges:
             await self.place_order(side="BUY", type="C", strike=hedge_target_price,
@@ -135,8 +150,10 @@ class Strategy:
 
                 if side == "SELL":
                     self.atm_call_sl = self.atm_call_sl - (self.atm_call_fill * (creds.sell_call_change_sl_by / 100))
+                    self.atm_call_sl = round(self.atm_call_sl, 1)
                 elif side == "BUY":
                     self.atm_call_sl = self.atm_call_sl + (self.atm_call_fill * (creds.buy_call_change_sl_by / 100))
+                    self.atm_call_sl = round(self.atm_call_sl, 1)
 
                 await self.dprint(
                     f"[CALL {side.upper()}] Price dip detected - Adjusting trailing parameters"
@@ -166,7 +183,7 @@ class Strategy:
 
                 await self.dprint(
                     f"[CALL {side.upper()}] Stop loss triggered"
-                    f"\nCurrent Premium: {premium_price['mid']}"
+                    f"\nCurrent Premium: {premium_price}"
                     f"\nStop Loss Level: {self.atm_call_sl}"
                     f"\nStrike Price: {leg_target_price}"
                     f"\nPosition Size: {quantity}"
@@ -188,7 +205,7 @@ class Strategy:
                 print(f"Hedge: {leg_target_price}")
         hedge_target_price = closest_current_price - (creds.strike_interval * creds.OTM_PUT_HEDGE)
 
-        print(f"Leg: {leg_target_price}")
+        await self.dprint(f"Leg: {leg_target_price} Hedge: {leg_target_price}")
 
         if creds.close_hedges and side.upper() == "SELL" and creds.active_close_hedges:
             await self.place_order(side="BUY", type="P", strike=hedge_target_price,
@@ -226,8 +243,10 @@ class Strategy:
 
                 if side == "SELL":
                     self.atm_put_sl = self.atm_put_sl - (self.atm_put_fill * (creds.sell_put_change_sl_by / 100))
+                    self.atm_put_sl = round(self.atm_put_sl, 1)
                 elif side == "BUY":
                     self.atm_put_sl = self.atm_put_sl + (self.atm_put_fill * (creds.buy_put_change_sl_by / 100))
+                    self.atm_put_sl = round(self.atm_put_sl, 1)
 
                 await self.dprint(
                     f"[PUT {side.upper()}] Price dip detected - Adjusting trailing parameters"
@@ -257,7 +276,7 @@ class Strategy:
 
                 await self.dprint(
                     f"[PUT {side.upper()}] Stop loss triggered"
-                    f"\nCurrent Premium: {premium_price['mid']}"
+                    f"\nCurrent Premium: {premium_price}"
                     f"\nStop Loss Level: {self.atm_put_sl}"
                     f"\nStrike Price: {leg_target_price}"
                     f"\nPosition Size: {quantity}"
@@ -339,7 +358,7 @@ class Strategy:
         await self.dprint("\n1. Testing connection...")
         await self.broker.connect()
         await self.dprint(f"Connection status: {self.broker.is_connected()}")
-        self.strikes = await self.broker.fetch_strikes(creds.instrument, "CBOE",
+        self.strikes = await self.broker.fetch_strikes(creds.instrument, "NASDAQ",
                                                        secType="IND")
         if self.reset:
             # await self.close_all_positions(test=True)
