@@ -84,15 +84,15 @@ class Strategy:
         try:
             k = await self.broker.place_market_order(contract=contract, qty=quantity, side=side.upper())
             fill = k[1]
-            await self.dprint(f"""Placing Order: 
-                                Symbol: {contract.symbol}
-                                Expiry: {contract.lastTradeDateOrContractMonth}
-                                Strike: {contract.strike}
-                                Right: {contract.right}
-                                Exchange: {contract.exchange}
-                                Currency: {contract.currency}
-                                Multiplier: {contract.multiplier}
-                                """)
+            await self.dprint(
+                f"Placing Order:" 
+                f"Symbol: {contract.symbol}"
+                f"Expiry: {contract.lastTradeDateOrContractMonth}"
+                f"Strike: {contract.strike}"
+                f"Right: {contract.right}"
+                f"Exchange: {contract.exchange}"
+                f"Currency: {contract.currency}"
+                f"Multiplier: {contract.multiplier}")
 
             return contract, fill
         except Exception as e:
