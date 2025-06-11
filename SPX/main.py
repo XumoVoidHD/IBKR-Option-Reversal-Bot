@@ -288,6 +288,7 @@ class Strategy:
                     await self.dprint("CALL BUY SIDE CLOSED")
                 else:
                     await self.dprint("CALL SIDE BUY RE-ENTRY LIMIT REACHED")
+                    return
             elif self.curr_CE_side == "BUY":
                 if self.CE_SELL_REENTRY < creds.CE_SELL_REENTRY:
                     self.curr_CE_side = "SELL"
@@ -308,6 +309,7 @@ class Strategy:
                     await self.dprint("PUT BUY SIDE CLOSED")
                 else:
                     await self.dprint("PUT SIDE BUY RE-ENTRY LIMIT REACHED")
+                    return
             elif self.curr_PE_side == "BUY":
                 if self.PE_SELL_REENTRY < creds.PE_SELL_REENTRY:
                     self.curr_PE_side = "SELL"

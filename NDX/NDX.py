@@ -86,13 +86,13 @@ class Strategy:
             fill = k[1]
             await self.dprint(
                 f"Placing Order:" 
-                f"Symbol: {contract.symbol}"
-                f"Expiry: {contract.lastTradeDateOrContractMonth}"
-                f"Strike: {contract.strike}"
-                f"Right: {contract.right}"
-                f"Exchange: {contract.exchange}"
-                f"Currency: {contract.currency}"
-                f"Multiplier: {contract.multiplier}")
+                f"\nSymbol: {contract.symbol}"
+                f"\nExpiry: {contract.lastTradeDateOrContractMonth}"
+                f"\nStrike: {contract.strike}"
+                f"\nRight: {contract.right}"
+                f"\nExchange: {contract.exchange}"
+                f"\nCurrency: {contract.currency}"
+                f"\nMultiplier: {contract.multiplier}")
 
             return contract, fill
         except Exception as e:
@@ -288,15 +288,16 @@ class Strategy:
     async def call_side_handler(self):
         while self.should_continue:
             if self.curr_CE_side == "SELL":
-                if self.CE_BUY_REENTRY > creds.CE_BUY_REENTRY:
+                if self.CE_BUY_REENTRY < creds.CE_BUY_REENTRY:
                     self.curr_CE_side = "BUY"
                     await self.place_call_order("BUY")
                     self.CE_BUY_REENTRY += 1
                     await self.dprint("CALL BUY SIDE CLOSED")
                 else:
                     await self.dprint("CALL SIDE BUY RE-ENTRY LIMIT REACHED")
+                    return
             elif self.curr_CE_side == "BUY":
-                if self.CE_SELL_REENTRY > creds.CE_SELL_REENTRY:
+                if self.CE_SELL_REENTRY < creds.CE_SELL_REENTRY:
                     self.curr_CE_side = "SELL"
                     await self.place_call_order("SELL")
                     self.CE_SELL_REENTRY += 1
@@ -308,15 +309,16 @@ class Strategy:
     async def put_side_handler(self):
         while self.should_continue:
             if self.curr_PE_side == "SELL":
-                if self.PE_BUY_REENTRY > creds.PE_BUY_REENTRY:
+                if self.PE_BUY_REENTRY < creds.PE_BUY_REENTRY:
                     self.curr_PE_side = "BUY"
                     await self.place_put_order("BUY")
                     self.PE_BUY_REENTRY += 1
                     await self.dprint("PUT BUY SIDE CLOSED")
                 else:
                     await self.dprint("PUT SIDE BUY RE-ENTRY LIMIT REACHED")
+                    return
             elif self.curr_PE_side == "BUY":
-                if self.PE_SELL_REENTRY > creds.PE_SELL_REENTRY:
+                if self.PE_SELL_REENTRY < creds.PE_SELL_REENTRY:
                     self.curr_PE_side = "SELL"
                     await self.place_put_order("SELL")
                     self.PE_SELL_REENTRY += 1
@@ -325,8 +327,8 @@ class Strategy:
                     await self.dprint("PUT SIDE BUY RE-ENTRY LIMIT REACHED")
             await asyncio.sleep(0.5)
 
-    async def close_all_positions(self, test):
-        if creds.close_positions and not test:
+    async def close_all_positions(self):
+        if self.testing:
             return
         else:
             while True:
@@ -337,7 +339,7 @@ class Strategy:
                     second=creds.exit_second,
                     microsecond=0)
 
-                if current_time >= target_time or test:
+                if current_time >= target_time:
                     self.should_continue = False
                     break
 
@@ -368,6 +370,16 @@ class Strategy:
             await self.broker.cancel_hedge()
             return
 
+        if creds.active_close_hedges:
+            if not creds.close_hedges:
+                await self.open_hedges()
+                await self.dprint("Hedges will only be placed once in the beginning")
+            else:
+                await self.dprint("Hedges will close and open with the sell side")
+                pass
+        else:
+            await self.dprint("Hedges Disabled")
+
         while True:
             current_time = datetime.now(timezone('US/Eastern'))
             start_time = current_time.replace(
@@ -382,16 +394,10 @@ class Strategy:
                 microsecond=0)
             await self.dprint(f"Current Time: {current_time}")
             if (start_time <= current_time <= closing_time) or self.testing:
-                if creds.active_close_hedges:
-                    if not creds.close_hedges:
-                        await self.open_hedges()
-                    else:
-                        pass
-
                 await asyncio.gather(
                     self.call_side_handler(),
-                    self.put_side_handler(),
-                    self.close_all_positions(test=False),
+                    # self.put_side_handler(),
+                    self.close_all_positions(),
                 )
             else:
                 await self.dprint("Market is currently closed")
