@@ -8,11 +8,10 @@ currency = "USD"
 strike_interval = 5
 close_positions = False
 enable_logging = True
-WEBHOOK_URL = "https://discord.com/api/webhooks/1338550862922125382/ngLa-LmVaolmdMDeNV4f4jTEhzhCJwvZXsSrpHiYcZmWIhYEQ9ef4elRQB0Kf1PmYG5B"
+WEBHOOK_URL = "https://discord.com/api/webhooks/1381257682404769903/vwldqh92SDVPVBTpNviTD_by7iUe3biGAxNrGbI1QteydH8Lbw_iYmEG2Q2Q0FRT1sua"
 
 # Global Values
 date = "20250609"                # Date of contract (YYYY-MM-DD)
-conversion_time = 10                # Deprecated (No use)
 entry_hour = 9                      # Entry time in hours
 entry_minute = 30                   # Entry time in minutes
 entry_second = 59                    # Entry time in seconds
@@ -26,12 +25,15 @@ put_check_time = 1
 OTM_CALL_HEDGE = 10                # How far away the call hedge is (10 means that its $50 away from current price)
 OTM_PUT_HEDGE = 10                 # How far away the put hedge is (10 means that its $50 away from current price)
 close_hedges = True
-active_close_hedges = True # To be implemented
+active_close_hedges = True
+# if active_close_hedges is false then don't open the hedges at all if true
+# And close_hedges is true then close and open hedges accordingly
+# And if close-hedges is False then just open the hedges but don't close them
 call_hedge_quantity = 1             # Quantity for call hedge
 put_hedge_quantity = 1              # Quantity for put hedge
 
 #SELL SIDE
-CE_SELL_REENTRY = 1
+CE_SELL_REENTRY = 2
 PE_SELL_REENTRY = 1
 ATM_CALL_SELL = 5                       # How far away call position is (2 means that its $10 away from current price)
 ATM_PUT_SELL = 5
@@ -45,7 +47,7 @@ sell_call_position_quantity = 1                   # Quantity for call position
 sell_put_position_quantity = 1                    # Quantity for put position
 
 #BUY SIDE
-CE_BUY_REENTRY = 1
+CE_BUY_REENTRY = 2
 PE_BUY_REENTRY = 1
 ATM_CALL_BUY = 5                       # How far away call position is (2 means that its $10 away from current price)
 ATM_PUT_BUY = 5                         # How far away put position is (2 means that its $10 away from current price)

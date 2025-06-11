@@ -130,7 +130,7 @@ class Strategy:
 
             if ((premium_price['ask'] <= self.atm_call_fill - temp_percentage * (
                     creds.sell_call_entry_price_changes_by / 100) * self.atm_call_fill and side == "SELL") or
-                    (premium_price['bid'] >= self.atm_call_fill - temp_percentage * (
+                    (premium_price['bid'] >= self.atm_call_fill + temp_percentage * (
                             creds.buy_call_entry_price_changes_by / 100) * self.atm_call_fill and side == "BUY")):
 
                 if side == "SELL":
@@ -221,7 +221,7 @@ class Strategy:
 
             if ((premium_price['ask'] <= self.atm_put_fill - temp_percentage * (
                     creds.sell_put_entry_price_changes_by / 100) * self.atm_put_fill and side == "SELL") or
-                    (premium_price['bid'] >= self.atm_put_fill - temp_percentage * (
+                    (premium_price['bid'] >= self.atm_put_fill + temp_percentage * (
                             creds.buy_put_entry_price_changes_by / 100) * self.atm_put_fill and side == "BUY")):
 
                 if side == "SELL":
@@ -268,30 +268,42 @@ class Strategy:
 
     async def call_side_handler(self):
         while self.should_continue:
-            if self.curr_CE_side == "SELL" and self.CE_BUY_REENTRY > creds.CE_BUY_REENTRY:
-                self.curr_CE_side = "BUY"
-                await self.place_call_order("BUY")
-                self.CE_BUY_REENTRY += 1
-                await self.dprint("CALL BUY SIDE CLOSED")
-            elif self.curr_CE_side == "BUY" and self.CE_SELL_REENTRY > creds.CE_SELL_REENTRY:
-                self.curr_CE_side = "SELL"
-                await self.place_call_order("SELL")
-                self.CE_SELL_REENTRY += 1
-                await self.dprint("CALL SELL SIDE CLOSED")
+            if self.curr_CE_side == "SELL":
+                if self.CE_BUY_REENTRY > creds.CE_BUY_REENTRY:
+                    self.curr_CE_side = "BUY"
+                    await self.place_call_order("BUY")
+                    self.CE_BUY_REENTRY += 1
+                    await self.dprint("CALL BUY SIDE CLOSED")
+                else:
+                    await self.dprint("CALL SIDE BUY RE-ENTRY LIMIT REACHED")
+            elif self.curr_CE_side == "BUY":
+                if self.CE_SELL_REENTRY > creds.CE_SELL_REENTRY:
+                    self.curr_CE_side = "SELL"
+                    await self.place_call_order("SELL")
+                    self.CE_SELL_REENTRY += 1
+                    await self.dprint("CALL SELL SIDE CLOSED")
+                else:
+                    await self.dprint("CALL SIDE SELL RE-ENTRY LIMIT REACHED")
             await asyncio.sleep(0.5)
 
     async def put_side_handler(self):
         while self.should_continue:
-            if self.curr_PE_side == "SELL" and self.PE_BUY_REENTRY > creds.PE_BUY_REENTRY:
-                self.curr_PE_side = "BUY"
-                await self.place_put_order("BUY")
-                self.PE_BUY_REENTRY += 1
-                await self.dprint("PUT BUY SIDE CLOSED")
-            elif self.curr_PE_side == "BUY" and self.PE_SELL_REENTRY > creds.PE_SELL_REENTRY:
-                self.curr_PE_side = "SELL"
-                await self.place_put_order("SELL")
-                self.PE_SELL_REENTRY += 1
-                await self.dprint("PUT SELL SIDE CLOSED")
+            if self.curr_PE_side == "SELL":
+                if self.PE_BUY_REENTRY > creds.PE_BUY_REENTRY:
+                    self.curr_PE_side = "BUY"
+                    await self.place_put_order("BUY")
+                    self.PE_BUY_REENTRY += 1
+                    await self.dprint("PUT BUY SIDE CLOSED")
+                else:
+                    await self.dprint("PUT SIDE BUY RE-ENTRY LIMIT REACHED")
+            elif self.curr_PE_side == "BUY":
+                if self.PE_SELL_REENTRY > creds.PE_SELL_REENTRY:
+                    self.curr_PE_side = "SELL"
+                    await self.place_put_order("SELL")
+                    self.PE_SELL_REENTRY += 1
+                    await self.dprint("PUT SELL SIDE CLOSED")
+                else:
+                    await self.dprint("PUT SIDE BUY RE-ENTRY LIMIT REACHED")
             await asyncio.sleep(0.5)
 
     async def close_all_positions(self, test):
@@ -351,18 +363,20 @@ class Strategy:
                 microsecond=0)
             await self.dprint(f"Current Time: {current_time}")
             if (start_time <= current_time <= closing_time) or self.testing:
-                if creds.active_close_hedges: # if active_close_hedges is false then don't open the hedges at all
+                if creds.active_close_hedges:
                     if not creds.close_hedges:
                         await self.open_hedges()
                     else:
                         pass
-                    # And close_hedges is true then close and open hedges accordingly
-                    # And if close-hedges is False then just open the hedges but don't close them
+
                 await asyncio.gather(
                     self.call_side_handler(),
                     self.put_side_handler(),
                     self.close_all_positions(test=False),
                 )
+            else:
+                await self.dprint("Market is currently closed")
+                await asyncio.sleep(30)
 
 
 if __name__ == "__main__":
