@@ -1,17 +1,16 @@
 # Default Values
 port = 7497
 host = "127.0.0.1"
-data_type = 4
-instrument = "SPX"
-exchange = "SMART"
-currency = "USD"
+instrument = "ESTX50"
+trading_class = "OEXP"
+exchange = "EUREX"
+currency = "EUR"
 strike_interval = 5
-close_positions = False
 enable_logging = True
 WEBHOOK_URL = "https://discord.com/api/webhooks/1381257682404769903/vwldqh92SDVPVBTpNviTD_by7iUe3biGAxNrGbI1QteydH8Lbw_iYmEG2Q2Q0FRT1sua"
 
 # Global Values
-date = "20250611"                # Date of contract (YYYY-MM-DD)
+date = "20250616"                # Date of contract (YYYY-MM-DD)
 entry_hour = 9                      # Entry time in hours
 entry_minute = 30                   # Entry time in minutes
 entry_second = 59                    # Entry time in seconds
@@ -25,7 +24,7 @@ put_check_time = 1
 OTM_CALL_HEDGE = 10                # How far away the call hedge is (10 means that its $50 away from current price)
 OTM_PUT_HEDGE = 10                 # How far away the put hedge is (10 means that its $50 away from current price)
 close_hedges = True
-active_close_hedges = True
+active_close_hedges = False
 # if active_close_hedges is false then don't open the hedges at all if true
 # And close_hedges is true then close and open hedges accordingly
 # And if close-hedges is False then just open the hedges but don't close them
