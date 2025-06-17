@@ -102,13 +102,12 @@ class Strategy:
         current_price = await self.get_current_price()
         closest_current_price = await self.get_closest_price(current_price)
         leg_target_price = 0
-        if creds.active_close_hedges and creds.close_hedges:
-            if side == "SELL":
-                leg_target_price = closest_current_price - (creds.strike_interval * creds.ATM_CALL_SELL)
-                print(f"Hedge: {leg_target_price}")
-            elif side == "BUY":
-                leg_target_price = closest_current_price - (creds.strike_interval * creds.ATM_CALL_BUY)
-                print(f"Hedge: {leg_target_price}")
+        if side == "SELL":
+            leg_target_price = closest_current_price - (creds.strike_interval * creds.ATM_CALL_SELL)
+            print(f"Hedge: {leg_target_price}")
+        elif side == "BUY":
+            leg_target_price = closest_current_price - (creds.strike_interval * creds.ATM_CALL_BUY)
+            print(f"Hedge: {leg_target_price}")
 
         hedge_target_price = closest_current_price + (creds.strike_interval * creds.OTM_CALL_HEDGE)
 
@@ -196,13 +195,12 @@ class Strategy:
         current_price = await self.get_current_price()
         closest_current_price = await self.get_closest_price(current_price)
         leg_target_price = 0
-        if creds.active_close_hedges and creds.close_hedges:
-            if side == "SELL":
-                leg_target_price = closest_current_price - (creds.strike_interval * creds.ATM_PUT_SELL)
-                print(f"Hedge: {leg_target_price}")
-            elif side == "BUY":
-                leg_target_price = closest_current_price - (creds.strike_interval * creds.ATM_PUT_BUY)
-                print(f"Hedge: {leg_target_price}")
+        if side == "SELL":
+            leg_target_price = closest_current_price - (creds.strike_interval * creds.ATM_PUT_SELL)
+            print(f"Hedge: {leg_target_price}")
+        elif side == "BUY":
+            leg_target_price = closest_current_price - (creds.strike_interval * creds.ATM_PUT_BUY)
+            print(f"Hedge: {leg_target_price}")
         hedge_target_price = closest_current_price - (creds.strike_interval * creds.OTM_PUT_HEDGE)
 
         await self.dprint(f"Leg: {leg_target_price} Hedge: {leg_target_price}")
