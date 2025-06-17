@@ -1,10 +1,10 @@
 # Default Values
 port = 7497
 host = "127.0.0.1"
-instrument = "SPX"
+instrument = "NDX"
 exchange = "SMART"
 currency = "USD"
-strike_interval = 5
+strike_interval = 10
 enable_logging = True
 WEBHOOK_URL = "https://discord.com/api/webhooks/1381257682404769903/vwldqh92SDVPVBTpNviTD_by7iUe3biGAxNrGbI1QteydH8Lbw_iYmEG2Q2Q0FRT1sua"
 
