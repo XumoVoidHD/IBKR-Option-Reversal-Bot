@@ -47,7 +47,7 @@ class Strategy:
         self.logger = setup_logger() if self.enable_logging else None
 
     async def dprint(self, phrase):
-        print(phrase)
+        # print(phrase)
         if self.enable_logging:
             self.logger.info(phrase)
         await send_discord_message(phrase)
@@ -134,7 +134,7 @@ class Strategy:
                 strike=leg_target_price,
                 right="C"
             )
-
+            await self.dprint(f"Call Premium: {premium_price}")
             if ((premium_price['ask'] <= self.atm_call_fill - temp_percentage * (
                     creds.sell_call_entry_price_changes_by / 100) * self.atm_call_fill and side == "SELL") or
                     (premium_price['bid'] >= self.atm_call_fill + temp_percentage * (
@@ -159,6 +159,8 @@ class Strategy:
                                                    order_id=call_stp_id)
                 temp_percentage += 1
                 continue
+            else:
+                await self.dprint("Call trailing didn't happen")
 
             open_trades = await self.broker.get_positions()
 
@@ -181,6 +183,8 @@ class Strategy:
                     f"\nPosition Size: {quantity}"
                 )
                 return
+            else:
+                await self.dprint("Call sl not hit")
 
             await asyncio.sleep(creds.call_check_time)
 
@@ -224,9 +228,9 @@ class Strategy:
                 symbol=creds.instrument,
                 expiry=creds.date,
                 strike=leg_target_price,
-                right="C"
+                right="P"
             )
-
+            await self.dprint(f"Put Premium: {premium_price}")
             if ((premium_price['ask'] <= self.atm_put_fill - temp_percentage * (
                     creds.sell_put_entry_price_changes_by / 100) * self.atm_put_fill and side == "SELL") or
                     (premium_price['bid'] >= self.atm_put_fill + temp_percentage * (
@@ -251,18 +255,20 @@ class Strategy:
                                                    order_id=put_stp_id)
                 temp_percentage += 1
                 continue
+            else:
+                await self.dprint("Put trailing didn't happen")
 
             open_trades = await self.broker.get_positions()
 
             put_exists = any(
-                trade.contract.secType == 'OPT' and trade.contract.right == 'C' and
+                trade.contract.secType == 'OPT' and trade.contract.right == 'P' and
                 trade.contract.symbol == creds.instrument and trade.contract.strike == leg_target_price
                 for trade in open_trades
             )
 
             if not put_exists or not self.should_continue:
                 if creds.close_hedges and side == "SELL" and creds.active_close_hedges:
-                    await self.place_order(side="SELL", type="C", strike=hedge_target_price,
+                    await self.place_order(side="SELL", type="P", strike=hedge_target_price,
                                            quantity=creds.put_hedge_quantity)
 
                 await self.dprint(
@@ -273,6 +279,8 @@ class Strategy:
                     f"\nPosition Size: {quantity}"
                 )
                 return
+            else:
+                await self.dprint("Put sl not hit")
 
             await asyncio.sleep(creds.put_check_time)
 
@@ -295,6 +303,7 @@ class Strategy:
                     await self.dprint("CALL SELL SIDE CLOSED")
                 else:
                     await self.dprint("CALL SIDE SELL RE-ENTRY LIMIT REACHED")
+                    return
             await asyncio.sleep(0.5)
 
     async def put_side_handler(self):
@@ -316,6 +325,7 @@ class Strategy:
                     await self.dprint("PUT SELL SIDE CLOSED")
                 else:
                     await self.dprint("PUT SIDE BUY RE-ENTRY LIMIT REACHED")
+                    return
             await asyncio.sleep(0.5)
 
     async def close_all_positions(self):

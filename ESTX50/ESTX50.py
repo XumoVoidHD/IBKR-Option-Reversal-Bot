@@ -129,7 +129,7 @@ class Strategy:
                 strike=leg_target_price,
                 right="C"
             )
-
+            await self.dprint(f"Call Premium: {premium_price}")
             if ((premium_price['ask'] >= self.atm_call_sl and side == "SELL") or (premium_price["bid"] <=
                                                                                   self.atm_call_sl
                                                                                   and side == "BUY")):
@@ -150,6 +150,8 @@ class Strategy:
                     await self.place_order(side="SELL", type="C", strike=hedge_target_price,
                                            quantity=creds.call_hedge_quantity)
                 return
+            else:
+                await self.dprint("Call sl not hit")
 
             if ((premium_price['ask'] <= self.atm_call_fill - temp_percentage * (
                     creds.sell_call_entry_price_changes_by / 100) * self.atm_call_fill and side == "SELL") or
@@ -173,6 +175,8 @@ class Strategy:
 
                 temp_percentage += 1
                 continue
+            else:
+                await self.dprint("Call trail not triggered")
 
             await asyncio.sleep(1)
 
@@ -214,7 +218,7 @@ class Strategy:
                 strike=leg_target_price,
                 right="P"
             )
-
+            await self.dprint(f"Put Premium: {premium_price}")
             if ((premium_price['bid'] >= self.atm_put_sl and side == "SELL") or (premium_price["ask"] <=
                                                                                  self.atm_put_sl
                                                                                  and side == "BUY")):
@@ -231,9 +235,11 @@ class Strategy:
                 await self.broker.place_market_order(contract=self.put_contract, qty=pos,
                                                      side=stp_side)
                 if creds.close_hedges and side == "SELL":
-                    await self.place_order(side="SELL", type="C", strike=hedge_target_price,
+                    await self.place_order(side="SELL", type="P", strike=hedge_target_price,
                                            quantity=creds.put_hedge_quantity)
                 return
+            else:
+                await self.dprint("Put sl not hit")
 
             if ((premium_price['ask'] <= self.atm_put_fill - temp_percentage * (
                     creds.sell_put_entry_price_changes_by / 100) * self.atm_put_fill and side == "SELL") or
@@ -257,6 +263,8 @@ class Strategy:
 
                 temp_percentage += 1
                 continue
+            else:
+                await self.dprint("Put trail not triggered")
 
             await asyncio.sleep(1)
 

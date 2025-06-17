@@ -6,14 +6,14 @@ exchange = "SMART"
 currency = "USD"
 strike_interval = 10
 enable_logging = True
-WEBHOOK_URL = "https://discord.com/api/webhooks/1381257682404769903/vwldqh92SDVPVBTpNviTD_by7iUe3biGAxNrGbI1QteydH8Lbw_iYmEG2Q2Q0FRT1sua"
+WEBHOOK_URL = "https://discord.com/api/webhooks/1381257758640443565/Ln5AGYBpU59q0b56jkvIlMGfuXXnrC15dNiVNtCG4rfjzOwZ_WA9K3GJsgFDFgD94G_8"
 
 # Global Values
-date = "20250611"                # Date of contract (YYYY-MM-DD)
+date = "20250617"                # Date of contract (YYYY-MM-DD)
 entry_hour = 9                      # Entry time in hours
 entry_minute = 30                   # Entry time in minutes
 entry_second = 59                    # Entry time in seconds
-exit_hour = 14                     # Exit time in hours
+exit_hour = 16                     # Exit time in hours
 exit_minute = 30                    # Exit time in minutes
 exit_second = 00                     # Exit time in seconds
 call_check_time = 1
@@ -22,7 +22,7 @@ put_check_time = 1
 #Hedges
 OTM_CALL_HEDGE = 10                # How far away the call hedge is (10 means that its $50 away from current price)
 OTM_PUT_HEDGE = 10                 # How far away the put hedge is (10 means that its $50 away from current price)
-close_hedges = True
+close_hedges = False
 active_close_hedges = True
 # if active_close_hedges is false then don't open the hedges at all if true
 # And close_hedges is true then close and open hedges accordingly

@@ -1,6 +1,5 @@
 # Ignore PyCharm project settings
 .idea/
-
 # Ignore all files in logs/ but not the folder
 logs/*
 !logs/.gitkeep
