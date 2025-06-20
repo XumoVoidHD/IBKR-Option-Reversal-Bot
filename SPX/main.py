@@ -1,4 +1,4 @@
-from broker.ibkr_broker import IBTWSAPI
+from ibkr_broker import IBTWSAPI
 import creds
 import asyncio
 from ib_insync import *
@@ -170,7 +170,7 @@ class Strategy:
                 for trade in open_trades
             )
 
-            if not call_exists or not self.should_continue:
+            if not call_exists:
                 if creds.close_hedges and side == "SELL" and creds.active_close_hedges:
                     await self.place_order(side="SELL", type="C", strike=hedge_target_price,
                                            quantity=creds.call_hedge_quantity)
@@ -185,6 +185,15 @@ class Strategy:
                 return
             else:
                 await self.dprint("Call sl not hit")
+
+            if not self.should_continue:
+                await self.dprint("Exiting Call Side")
+                if creds.close_hedges and side == "SELL" and creds.active_close_hedges:
+                    await self.place_order(side="SELL", type="C", strike=hedge_target_price,
+                                           quantity=creds.put_hedge_quantity)
+                side = "SELL" if self.curr_PE_side == "BUY" else "BUY"
+                await self.place_order(side=side, type="C", strike=leg_target_price, quantity=quantity)
+                return
 
             await asyncio.sleep(creds.call_check_time)
 
@@ -266,7 +275,7 @@ class Strategy:
                 for trade in open_trades
             )
 
-            if not put_exists or not self.should_continue:
+            if not put_exists:
                 if creds.close_hedges and side == "SELL" and creds.active_close_hedges:
                     await self.place_order(side="SELL", type="P", strike=hedge_target_price,
                                            quantity=creds.put_hedge_quantity)
@@ -281,6 +290,15 @@ class Strategy:
                 return
             else:
                 await self.dprint("Put sl not hit")
+
+            if not self.should_continue:
+                await self.dprint("Exiting Put Side")
+                if creds.close_hedges and side == "SELL" and creds.active_close_hedges:
+                    await self.place_order(side="SELL", type="P", strike=hedge_target_price,
+                                           quantity=creds.put_hedge_quantity)
+                side = "SELL" if self.curr_PE_side == "BUY" else "BUY"
+                await self.place_order(side=side, type="P", strike=leg_target_price, quantity=quantity)
+                return
 
             await asyncio.sleep(creds.put_check_time)
 
@@ -341,6 +359,7 @@ class Strategy:
                     microsecond=0)
 
                 if current_time >= target_time:
+                    await self.broker.close_all_open_orders()
                     self.should_continue = False
                     break
 

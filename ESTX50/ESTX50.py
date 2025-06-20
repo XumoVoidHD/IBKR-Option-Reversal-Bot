@@ -178,6 +178,19 @@ class Strategy:
             else:
                 await self.dprint("Call trail not triggered")
 
+            if not self.should_continue:
+                pos = creds.buy_call_position_quantity if self.curr_CE_side == "BUY" else (
+                    creds.sell_call_position_quantity)
+
+                await self.dprint("Exiting Call Side")
+                stp_side = "BUY" if side == "SELL" else "SELL"
+                await self.broker.place_market_order(contract=self.call_contract, qty=pos,
+                                                     side=stp_side)
+                if creds.close_hedges and side == "SELL":
+                    await self.place_order(side="SELL", type="C", strike=hedge_target_price,
+                                           quantity=creds.call_hedge_quantity)
+                return
+
             await asyncio.sleep(1)
 
     async def place_put_order(self, side: str):
@@ -266,6 +279,18 @@ class Strategy:
             else:
                 await self.dprint("Put trail not triggered")
 
+            if not self.should_continue:
+                pos = creds.buy_put_position_quantity if self.curr_PE_side == "BUY" else (
+                    creds.sell_put_position_quantity)
+                await self.dprint("Exiting Put Side")
+                stp_side = "BUY" if side == "SELL" else "SELL"
+                await self.broker.place_market_order(contract=self.put_contract, qty=pos,
+                                                     side=stp_side)
+                if creds.close_hedges and side == "SELL":
+                    await self.place_order(side="SELL", type="P", strike=hedge_target_price,
+                                           quantity=creds.put_hedge_quantity)
+                return
+
             await asyncio.sleep(1)
 
     async def call_side_handler(self):
@@ -323,6 +348,7 @@ class Strategy:
                     microsecond=0)
 
                 if current_time >= target_time:
+                    await self.broker.close_all_open_orders()
                     self.should_continue = False
                     break
 
