@@ -84,13 +84,13 @@ class Strategy:
             fill = k[1]
             await self.dprint(
                 f"Placing Order:" 
-                f"Symbol: {contract.symbol}"
-                f"Expiry: {contract.lastTradeDateOrContractMonth}"
-                f"Strike: {contract.strike}"
-                f"Right: {contract.right}"
-                f"Exchange: {contract.exchange}"
-                f"Currency: {contract.currency}"
-                f"Multiplier: {contract.multiplier}")
+                f"\nSymbol: {contract.symbol}"
+                f"\nExpiry: {contract.lastTradeDateOrContractMonth}"
+                f"\nStrike: {contract.strike}"
+                f"\nRight: {contract.right}"
+                f"\nExchange: {contract.exchange}"
+                f"\nCurrency: {contract.currency}"
+                f"\nMultiplier: {contract.multiplier}")
 
             return contract, fill
         except Exception as e:
@@ -102,10 +102,10 @@ class Strategy:
         leg_target_price = 0
         if side == "SELL":
             leg_target_price = closest_current_price - (creds.strike_interval * creds.ATM_CALL_SELL)
-            print(f"Hedge: {leg_target_price}")
+            print(f"Position: {leg_target_price}")
         elif side == "BUY":
             leg_target_price = closest_current_price - (creds.strike_interval * creds.ATM_CALL_BUY)
-            print(f"Hedge: {leg_target_price}")
+            print(f"Position: {leg_target_price}")
 
         hedge_target_price = closest_current_price + (creds.strike_interval * creds.OTM_CALL_HEDGE)
 
@@ -139,7 +139,7 @@ class Strategy:
                 strike=leg_target_price,
                 right="C"
             )
-            await self.dprint(f"Call Premium: {premium_price}")
+            await self.lprint(f"Call Premium: {premium_price}")
             if ((premium_price['ask'] <= self.atm_call_fill - temp_percentage * (
                     creds.sell_call_entry_price_changes_by / 100) * self.atm_call_fill and side == "SELL") or
                     (premium_price['bid'] >= self.atm_call_fill + temp_percentage * (
@@ -164,8 +164,6 @@ class Strategy:
                                                    order_id=call_stp_id)
                 temp_percentage += 1
                 continue
-            else:
-                await self.dprint("Call trailing didn't happen")
 
             open_trades = await self.broker.get_positions()
 
@@ -175,7 +173,7 @@ class Strategy:
                 for trade in open_trades
             )
 
-            if not call_exists or not self.should_continue:
+            if not call_exists and self.should_continue:
                 if creds.close_hedges and side == "SELL" and creds.active_close_hedges:
                     await self.place_order(side="SELL", type="C", strike=hedge_target_price,
                                            quantity=creds.call_hedge_quantity)
@@ -188,15 +186,13 @@ class Strategy:
                     f"\nPosition Size: {quantity}"
                 )
                 return
-            else:
-                await self.dprint("Call sl not hit")
 
             if not self.should_continue:
                 await self.dprint("Exiting Call Side")
                 if creds.close_hedges and side == "SELL" and creds.active_close_hedges:
                     await self.place_order(side="SELL", type="C", strike=hedge_target_price,
-                                           quantity=creds.put_hedge_quantity)
-                side = "SELL" if self.curr_PE_side == "BUY" else "BUY"
+                                           quantity=creds.call_hedge_quantity)
+                side = "SELL" if self.curr_CE_side == "BUY" else "BUY"
                 await self.place_order(side=side, type="C", strike=leg_target_price, quantity=quantity)
                 return
 
@@ -221,7 +217,7 @@ class Strategy:
                                    quantity=creds.put_hedge_quantity)
             await self.dprint("Put Hedge Placed")
 
-        quantity = creds.sell_call_position_quantity if side == "SELL" else creds.buy_call_position_quantity
+        quantity = creds.sell_put_position_quantity if side == "SELL" else creds.buy_put_position_quantity
         self.put_contract, self.atm_put_fill = await self.place_order(side=side.upper(), type="P",
                                                                       strike=leg_target_price,
                                                                       quantity=quantity)
@@ -244,7 +240,7 @@ class Strategy:
                 strike=leg_target_price,
                 right="P"
             )
-            await self.dprint(f"Put Premium: {premium_price}")
+            await self.lprint(f"Put Premium: {premium_price}")
             if ((premium_price['ask'] <= self.atm_put_fill - temp_percentage * (
                     creds.sell_put_entry_price_changes_by / 100) * self.atm_put_fill and side == "SELL") or
                     (premium_price['bid'] >= self.atm_put_fill + temp_percentage * (
@@ -269,8 +265,6 @@ class Strategy:
                                                    order_id=put_stp_id)
                 temp_percentage += 1
                 continue
-            else:
-                await self.dprint("Put trailing didn't happen")
 
             open_trades = await self.broker.get_positions()
 
@@ -280,7 +274,7 @@ class Strategy:
                 for trade in open_trades
             )
 
-            if not put_exists:
+            if not put_exists and self.should_continue:
                 if creds.close_hedges and side == "SELL" and creds.active_close_hedges:
                     await self.place_order(side="SELL", type="P", strike=hedge_target_price,
                                            quantity=creds.put_hedge_quantity)
@@ -293,8 +287,6 @@ class Strategy:
                     f"\nPosition Size: {quantity}"
                 )
                 return
-            else:
-                await self.lprint("Put sl not hit")
 
             if not self.should_continue:
                 await self.dprint("Exiting Put Side")
@@ -374,7 +366,7 @@ class Strategy:
         current_price = await self.get_current_price()
         closest_current_price = await self.get_closest_price(current_price)
         hedge_call_target_price = closest_current_price + (creds.strike_interval * creds.OTM_CALL_HEDGE)
-        hedge_put_target_price = closest_current_price + (creds.strike_interval * creds.OTM_CALL_HEDGE)
+        hedge_put_target_price = closest_current_price - (creds.strike_interval * creds.OTM_CALL_HEDGE)
         await asyncio.gather(
             self.place_order(side="BUY", type="C", strike=hedge_call_target_price, quantity=creds.call_hedge_quantity),
             self.place_order(side="BUY", type="P", strike=hedge_put_target_price, quantity=creds.put_hedge_quantity)
@@ -427,6 +419,10 @@ class Strategy:
             else:
                 await self.dprint("Market is currently closed")
                 await asyncio.sleep(30)
+
+                if not self.should_continue:
+                    exit()
+
 
 
 if __name__ == "__main__":

@@ -28,7 +28,8 @@ class IBTWSAPI:
             return Stock(symbol=symbol, exchange=exchange, currency=credentials.currency)
 
         elif contract == "options":
-            return Option(symbol=symbol, lastTradeDateOrContractMonth=expiry, exchange=exchange, currency=credentials.currency,
+            return Option(symbol=symbol, lastTradeDateOrContractMonth=expiry, exchange=exchange,
+                          currency=credentials.currency,
                           strike=strike, right=right, multiplier="100", tradingClass='SPXW')
 
         elif contract == "futureContracts":
@@ -76,9 +77,9 @@ class IBTWSAPI:
 
     async def close_all_open_orders(self):
         open_orders = self.client.reqOpenOrders()
+        print(open_orders)
         for order in open_orders:
             self.client.cancelOrder(order=order.orderStatus)
-
 
     async def get_contract_info(self, contract: str, symbol: str, exchange: str) -> dict:
         """
@@ -141,7 +142,8 @@ class IBTWSAPI:
         self.client.reqMarketDataType(4)
 
         chains = self.client.reqSecDefOptParams(contract.symbol, '', contract.secType, contract.conId)
-        chain = next(c for c in chains if c.tradingClass == credentials.trading_class and c.exchange == credentials.exchange)
+        chain = next(
+            c for c in chains if c.tradingClass == credentials.trading_class and c.exchange == credentials.exchange)
         strikes = chain.strikes
 
         return strikes
@@ -646,4 +648,3 @@ class IBTWSAPI:
 
         self.client.sleep(1)
         print(f"Order status: {trade.orderStatus.status}")
-
