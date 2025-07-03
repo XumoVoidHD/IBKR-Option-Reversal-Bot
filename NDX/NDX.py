@@ -101,10 +101,10 @@ class Strategy:
         closest_current_price = await self.get_closest_price(current_price)
         leg_target_price = 0
         if side == "SELL":
-            leg_target_price = closest_current_price - (creds.strike_interval * creds.ATM_CALL_SELL)
+            leg_target_price = closest_current_price + (creds.strike_interval * creds.ATM_CALL_SELL)
             print(f"Position: {leg_target_price}")
         elif side == "BUY":
-            leg_target_price = closest_current_price - (creds.strike_interval * creds.ATM_CALL_BUY)
+            leg_target_price = closest_current_price + (creds.strike_interval * creds.ATM_CALL_BUY)
             print(f"Position: {leg_target_price}")
 
         hedge_target_price = closest_current_price + (creds.strike_interval * creds.OTM_CALL_HEDGE)
