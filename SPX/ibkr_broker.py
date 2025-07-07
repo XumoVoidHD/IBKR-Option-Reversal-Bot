@@ -71,7 +71,7 @@ class IBTWSAPI:
 
     async def get_open_orders(self):
         x = self.client.reqOpenOrders()
-        self.client.sleep(7)
+        self.client.sleep(2)
         return x
 
     async def close_all_open_orders(self):
@@ -156,11 +156,15 @@ class IBTWSAPI:
             if buy_trade.isDone():
                 print("Order placed successfully")
                 fill_price = buy_trade.orderStatus.avgFillPrice
+                order_id = buy_trade.order.orderId
+                print("Order ID:", order_id)
                 print("Fill price:", fill_price)
-                return buy_trade, fill_price
+                return buy_trade, fill_price, order_id
             else:
                 print(f"Waiting...{contract.right}... {n} seconds")
                 n += 1
+                if n == 10:
+                    return 0, 0, buy_trade.order.orderId
                 await asyncio.sleep(1)
 
     async def current_price(self, symbol, exchange='CBOE'):

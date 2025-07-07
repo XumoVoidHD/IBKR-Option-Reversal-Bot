@@ -46,7 +46,7 @@ class Strategy:
         self.call_sell_rentry = 0
         self.testing = False
         self.reset = False
-        self.func_test = True
+        self.func_test = False
         self.enable_logging = creds.enable_logging
         self.logger = setup_logger() if self.enable_logging else None
 
@@ -123,10 +123,12 @@ class Strategy:
                     self.otm_call_fill = matching_order.orderStatus.filled
                     if self.otm_call_fill > 0:
                         print(f"Call hedge {self.otm_call_fill} is filled.")
+                        break
                     else:
                         print("Call hedge still open but not filled")
                 else:
                     print(f"Call hedge {self.otm_call_fill} is no longer in open orders — might be cancelled or filled.")
+                    break
 
                 await asyncio.sleep(1)
 
@@ -141,7 +143,6 @@ class Strategy:
         self.call_contract, self.atm_call_fill, self.atm_call_id = await self.place_order(side=side.upper(), type="C",
                                                                                           strike=leg_target_price,
                                                                                           quantity=quantity)
-        print("Call ATM placed")
         while self.should_continue:
             open_orders = await self.broker.get_open_orders()
             matching_order = next((trade for trade in open_orders if trade.order.orderId == self.atm_call_id), None)
@@ -150,10 +151,12 @@ class Strategy:
                 self.atm_call_fill = matching_order.orderStatus.filled
                 if self.atm_call_fill > 0:
                     print(f"Call Position {self.atm_call_id} is filled.")
+                    break
                 else:
                     print("Call Position still open but not filled")
             else:
                 print(f"Call Position {self.atm_call_id} is no longer in open orders — might be cancelled or filled.")
+                break
 
             await asyncio.sleep(1)
 
@@ -235,7 +238,7 @@ class Strategy:
                                            quantity=creds.call_hedge_quantity)
                 return
 
-            await asyncio.sleep(1)
+            await asyncio.sleep(creds.call_check_time)
 
     async def place_put_order(self, side: str):
         current_price = await self.get_current_price()
@@ -263,10 +266,12 @@ class Strategy:
                     self.otm_put_fill = matching_order.orderStatus.filled
                     if self.otm_put_fill > 0:
                         print(f"Put Hedge {self.otm_put_fill} is filled.")
+                        break
                     else:
                         print("Put Hedge still open but not filled")
                 else:
                     print(f"Put Hedge {self.otm_put_fill} is no longer in open orders — might be cancelled or filled.")
+                    break
 
                 await asyncio.sleep(1)
 
@@ -281,7 +286,6 @@ class Strategy:
         self.put_contract, self.atm_put_fill, self.atm_put_id = await self.place_order(side=side.upper(), type="P",
                                                                                        strike=leg_target_price,
                                                                                        quantity=quantity)
-        print("Put ATM placed")
         while self.should_continue:
             open_orders = await self.broker.get_open_orders()
             matching_order = next((trade for trade in open_orders if trade.order.orderId == self.atm_put_id), None)
@@ -290,10 +294,12 @@ class Strategy:
                 self.atm_put_fill = matching_order.orderStatus.filled
                 if self.atm_put_fill > 0:
                     print(f"Put Position {self.atm_put_fill} is filled.")
+                    break
                 else:
                     print("Put Position still open but not filled")
             else:
                 print(f"Put Position {self.atm_put_fill} is no longer in open orders — might be cancelled or filled.")
+                break
 
             await asyncio.sleep(1)
 
@@ -373,7 +379,7 @@ class Strategy:
                                            quantity=creds.put_hedge_quantity)
                 return
 
-            await asyncio.sleep(1)
+            await asyncio.sleep(creds.put_check_time)
 
     async def call_side_handler(self):
         while self.should_continue:

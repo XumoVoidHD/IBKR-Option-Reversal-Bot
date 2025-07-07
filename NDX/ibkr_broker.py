@@ -140,7 +140,7 @@ class IBTWSAPI:
         self.client.reqMarketDataType(4)
 
         chains = self.client.reqSecDefOptParams(contract.symbol, '', contract.secType, contract.conId)
-        chain = next(c for c in chains if c.tradingClass == symbol and c.exchange == "NASDAQ")
+        chain = next(c for c in chains if c.tradingClass == symbol)
         strikes = chain.strikes
 
         return strikes
@@ -161,6 +161,8 @@ class IBTWSAPI:
             else:
                 print(f"Waiting...{contract.right}... {n} seconds")
                 n += 1
+                if n == 10:
+                    return 0, 0, buy_trade.order.orderId
                 await asyncio.sleep(1)
 
     async def current_price(self, symbol, exchange='NASDAQ'):
