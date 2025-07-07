@@ -10,7 +10,7 @@ enable_logging = True
 WEBHOOK_URL = "https://discord.com/api/webhooks/1381257682404769903/vwldqh92SDVPVBTpNviTD_by7iUe3biGAxNrGbI1QteydH8Lbw_iYmEG2Q2Q0FRT1sua"
 
 # Global Values
-date = "20250616"                # Date of contract (YYYY-MM-DD)
+date = "20250708"                # Date of contract (YYYY-MM-DD)
 entry_hour = 9                      # Entry time in hours
 entry_minute = 30                   # Entry time in minutes
 entry_second = 59                    # Entry time in seconds
