@@ -503,6 +503,7 @@ class Strategy:
                 await self.dprint("Hedges will close and open with the sell side")
                 pass
         else:
+            creds.close_hedges = False
             await self.dprint("Hedges Disabled")
 
         while True:

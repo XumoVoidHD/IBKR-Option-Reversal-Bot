@@ -500,6 +500,7 @@ class Strategy:
                 await self.open_hedges()
                 await self.dprint("Hedges will only be placed once in the beginning")
             else:
+                creds.close_hedges = False
                 await self.dprint("Hedges will close and open with the sell side")
                 pass
         else:
