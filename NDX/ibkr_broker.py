@@ -157,7 +157,7 @@ class IBTWSAPI:
                 print("Order placed successfully")
                 fill_price = buy_trade.orderStatus.avgFillPrice
                 print("Fill price:", fill_price)
-                return buy_trade, fill_price
+                return buy_trade, fill_price, buy_trade.order.orderId
             else:
                 print(f"Waiting...{contract.right}... {n} seconds")
                 n += 1
@@ -550,7 +550,7 @@ class IBTWSAPI:
             exchange=exchange,
             currency="USD",  # Add currency to disambiguate
             multiplier="100",  # Ensure the multiplier matches
-            # tradingClass="SPXW",  # Specify tradingClass (e.g., SPXW or SPX)
+            tradingClass='NDXP'  # Specify tradingClass (e.g., SPXW or SPX)
         )
 
         self.client.qualifyContracts(option_contract)

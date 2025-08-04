@@ -120,7 +120,7 @@ class Strategy:
                 matching_order = next((trade for trade in open_orders if trade.order.orderId == self.otm_call_id), None)
 
                 if matching_order:
-                    self.otm_call_fill = matching_order.orderStatus.filled
+                    self.otm_call_fill = matching_order.orderStatus.avgFillPrice
                     if self.otm_call_fill > 0:
                         print(f"Call hedge {self.otm_call_fill} is filled.")
                         break
@@ -148,7 +148,7 @@ class Strategy:
             matching_order = next((trade for trade in open_orders if trade.order.orderId == self.atm_call_id), None)
 
             if matching_order:
-                self.atm_call_fill = matching_order.orderStatus.filled
+                self.atm_call_fill = matching_order.orderStatus.avgFillPrice
                 if self.atm_call_fill > 0:
                     print(f"Call Position {self.atm_call_id} is filled.")
                     break
@@ -166,9 +166,9 @@ class Strategy:
             return
 
         if side.upper() == "SELL":
-            self.atm_call_sl = round(self.atm_call_fill * (1 + (creds.call_sl_sell / 100)), 1)
+            self.atm_call_sl = round(self.atm_call_fill * (1 + (creds.call_sl_sell / 100)), 2)
         elif side.upper() == "BUY":
-            self.atm_call_sl = round(self.atm_call_fill * (1 - (creds.call_sl_buy / 100)), 1)
+            self.atm_call_sl = round(self.atm_call_fill * (1 - (creds.call_sl_buy / 100)), 2)
 
         await self.dprint(f"Call Order sl is {self.atm_call_sl}")
 
@@ -209,10 +209,10 @@ class Strategy:
 
                 if side == "SELL":
                     self.atm_call_sl = self.atm_call_sl - (self.atm_call_fill * (creds.sell_call_change_sl_by / 100))
-                    self.atm_call_sl = round(self.atm_call_sl, 1)
+                    self.atm_call_sl = round(self.atm_call_sl, 2)
                 elif side == "BUY":
                     self.atm_call_sl = self.atm_call_sl + (self.atm_call_fill * (creds.buy_call_change_sl_by / 100))
-                    self.atm_call_sl = round(self.atm_call_sl, 1)
+                    self.atm_call_sl = round(self.atm_call_sl, 2)
 
                 await self.dprint(
                     f"[CALL] Price dip detected - Adjusting trailing parameters"
@@ -263,7 +263,7 @@ class Strategy:
                 matching_order = next((trade for trade in open_orders if trade.order.orderId == self.otm_put_id), None)
 
                 if matching_order:
-                    self.otm_put_fill = matching_order.orderStatus.filled
+                    self.otm_put_fill = matching_order.orderStatus.avgFillPrice
                     if self.otm_put_fill > 0:
                         print(f"Put Hedge {self.otm_put_fill} is filled.")
                         break
@@ -291,7 +291,7 @@ class Strategy:
             matching_order = next((trade for trade in open_orders if trade.order.orderId == self.atm_put_id), None)
 
             if matching_order:
-                self.atm_put_fill = matching_order.orderStatus.filled
+                self.atm_put_fill = matching_order.orderStatus.avgFillPrice
                 if self.atm_put_fill > 0:
                     print(f"Put Position {self.atm_put_fill} is filled.")
                     break
@@ -309,9 +309,9 @@ class Strategy:
             return
 
         if side.upper() == "SELL":
-            self.atm_put_sl = round(self.atm_put_fill * (1 + (creds.put_sl_sell / 100)), 1)
+            self.atm_put_sl = round(self.atm_put_fill * (1 + (creds.put_sl_sell / 100)), 2)
         elif side.upper() == "BUY":
-            self.atm_put_sl = round(self.atm_put_fill * (1 - (creds.put_sl_buy / 100)), 1)
+            self.atm_put_sl = round(self.atm_put_fill * (1 - (creds.put_sl_buy / 100)), 2)
 
         await self.dprint(f"Put Order sl is {self.atm_put_sl}")
 
@@ -351,10 +351,10 @@ class Strategy:
 
                 if side == "SELL":
                     self.atm_put_sl = self.atm_put_sl - (self.atm_put_fill * (creds.sell_put_change_sl_by / 100))
-                    self.atm_put_sl = round(self.atm_put_sl, 1)
+                    self.atm_put_sl = round(self.atm_put_sl, 2)
                 elif side == "BUY":
                     self.atm_put_sl = self.atm_put_sl + (self.atm_put_fill * (creds.buy_put_change_sl_by / 100))
-                    self.atm_put_sl = round(self.atm_put_sl, 1)
+                    self.atm_put_sl = round(self.atm_put_sl, 2)
 
                 await self.dprint(
                     f"[PUT] Price dip detected - Adjusting trailing parameters"
@@ -481,7 +481,7 @@ class Strategy:
                 matching_order = next((trade for trade in open_orders if trade.order.orderId == z), None)
 
                 if matching_order:
-                    y = matching_order.orderStatus.filled
+                    y = matching_order.orderStatus.avgFillPrice
                     if y > 0:
                         print(f"Order {z} is filled.")
                         return

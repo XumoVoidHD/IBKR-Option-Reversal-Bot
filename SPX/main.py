@@ -121,7 +121,7 @@ class Strategy:
                 matching_order = next((trade for trade in open_orders if trade.order.orderId == self.otm_call_id), None)
 
                 if matching_order:
-                    self.otm_call_fill = matching_order.orderStatus.filled
+                    self.otm_call_fill = matching_order.orderStatus.avgFillPrice
                     if self.otm_call_fill > 0:
                         print(f"Call hedge {self.otm_call_fill} is filled.")
                         break
@@ -149,7 +149,7 @@ class Strategy:
             matching_order = next((trade for trade in open_orders if trade.order.orderId == self.atm_call_id), None)
 
             if matching_order:
-                self.atm_call_fill = matching_order.orderStatus.filled
+                self.atm_call_fill = matching_order.orderStatus.avgFillPrice
                 if self.atm_call_fill > 0:
                     print(f"Call Position {self.atm_call_id} is filled.")
                     break
@@ -268,7 +268,7 @@ class Strategy:
                 matching_order = next((trade for trade in open_orders if trade.order.orderId == self.otm_put_id), None)
 
                 if matching_order:
-                    self.otm_put_fill = matching_order.orderStatus.filled
+                    self.otm_put_fill = matching_order.orderStatus.avgFillPrice
                     if self.otm_put_fill > 0:
                         print(f"Put Hedge {self.otm_put_fill} is filled.")
                         break
@@ -296,7 +296,7 @@ class Strategy:
             matching_order = next((trade for trade in open_orders if trade.order.orderId == self.atm_put_id), None)
 
             if matching_order:
-                self.atm_put_fill = matching_order.orderStatus.filled
+                self.atm_put_fill = matching_order.orderStatus.avgFillPrice
                 if self.atm_put_fill > 0:
                     print(f"Put Position {self.atm_put_fill} is filled.")
                     break
