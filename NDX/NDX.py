@@ -515,17 +515,6 @@ class Strategy:
             await self.place_order("BUY", "C", 22400, 1)
             return
 
-        if creds.active_close_hedges:
-            if not creds.close_hedges:
-                await self.open_hedges()
-                await self.dprint("Hedges will only be placed once in the beginning")
-            else:
-                await self.dprint("Hedges will close and open with the sell side")
-                pass
-        else:
-            creds.close_hedges = False
-            await self.dprint("Hedges Disabled")
-
         while True:
             current_time = datetime.now(timezone('US/Eastern'))
             start_time = current_time.replace(
@@ -540,6 +529,16 @@ class Strategy:
                 microsecond=0)
             await self.dprint(f"Current Time: {current_time}")
             if (start_time <= current_time <= closing_time) or self.testing:
+                if creds.active_close_hedges:
+                    if not creds.close_hedges:
+                        await self.open_hedges()
+                        await self.dprint("Hedges will only be placed once in the beginning")
+                    else:
+                        await self.dprint("Hedges will close and open with the sell side")
+                        pass
+                else:
+                    creds.close_hedges = False
+                    await self.dprint("Hedges Disabled")
                 await asyncio.gather(
                     self.call_side_handler(),
                     self.put_side_handler(),
