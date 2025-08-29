@@ -96,7 +96,7 @@ class Strategy:
             k = await self.broker.place_market_order(contract=contract, qty=quantity, side=side.upper())
             fill = k[1]
             await self.dprint(
-                f"Placing Order:" 
+                f"Placing Order:"
                 f"\nSymbol: {contract.symbol}"
                 f"\nExpiry: {contract.lastTradeDateOrContractMonth}"
                 f"\nStrike: {contract.strike}"
@@ -157,11 +157,12 @@ class Strategy:
         self.call_contract, self.atm_call_fill, self.atm_call_id = await self.place_order(side=side.upper(), type="C",
                                                                                           strike=leg_target_price,
                                                                                           quantity=quantity)
-        await asyncio.sleep(1)
         while self.should_continue:
             await self.dprint("Call order place checking")
             open_orders = await self.broker.get_open_orders()
+            await self.dprint(f"Open Orders: {open_orders}")
             matching_order = next((trade for trade in open_orders if trade.order.orderId == self.atm_call_id), None)
+            await self.dprint(f"Call Matching orders: {matching_order}")
 
             if matching_order:
                 self.atm_call_fill = matching_order.orderStatus.avgFillPrice
@@ -171,7 +172,20 @@ class Strategy:
                 else:
                     await self.dprint("Call Position still open but not filled")
             else:
-                await self.dprint(f"Call Position {self.atm_call_fill} is no longer in open orders — might be cancelled or filled.")
+                await self.dprint(
+                    f"Call Position {self.atm_call_fill} is no longer in open orders — might be cancelled or filled.")
+
+                positions = await self.broker.get_positions()
+                call_position = next(
+                    (pos for pos in positions if getattr(pos, "orderId", None) == self.atm_call_id),
+                    None
+                )
+                if call_position:
+                    fill_price = getattr(call_position, "avgFillPrice", 0)
+                    if fill_price > 0:
+                        self.atm_call_fill = fill_price
+                        await self.dprint(f"Fill price found from positions: {self.atm_call_fill}")
+
                 break
 
             await asyncio.sleep(1)
@@ -191,8 +205,8 @@ class Strategy:
         temp_percentage = 1
         stp_side = "BUY" if side == "SELL" else "SELL"
         self.call_stp_id = await self.broker.place_stp_order(contract=self.call_contract, side=stp_side,
-                                                        quantity=quantity,
-                                                        sl=self.atm_call_sl)
+                                                             quantity=quantity,
+                                                             sl=self.atm_call_sl)
         await asyncio.sleep(1)
         while self.atm_call_fill > 0:
             premium_price = await self.broker.get_latest_premium_price(
@@ -279,7 +293,6 @@ class Strategy:
             put_hedge_contract, self.otm_put_fill, self.otm_put_id = await self.place_order(side="BUY", type="P",
                                                                                             strike=hedge_target_price,
                                                                                             quantity=creds.put_hedge_quantity)
-            await asyncio.sleep(1)
             while self.should_continue:
                 await self.dprint("Put Hedge order place checking")
                 open_orders = await self.broker.get_open_orders()
@@ -293,7 +306,8 @@ class Strategy:
                     else:
                         await self.dprint("Put Hedge still open but not filled")
                 else:
-                    await self.dprint(f"Put Hedge {self.otm_put_fill} is no longer in open orders — might be cancelled or filled.")
+                    await self.dprint(
+                        f"Put Position {self.atm_put_fill} is no longer in open orders — might be cancelled or filled.")
                     break
 
                 await asyncio.sleep(1)
@@ -309,7 +323,6 @@ class Strategy:
         self.put_contract, self.atm_put_fill, self.atm_put_id = await self.place_order(side=side.upper(), type="P",
                                                                                        strike=leg_target_price,
                                                                                        quantity=quantity)
-        await asyncio.sleep(1)
         while self.should_continue:
             await self.dprint("Put Position order place checking")
             open_orders = await self.broker.get_open_orders()
@@ -323,7 +336,20 @@ class Strategy:
                 else:
                     await self.dprint("Put Position still open but not filled")
             else:
-                await self.dprint(f"Put Position {self.atm_put_fill} is no longer in open orders — might be cancelled or filled.")
+                await self.dprint(
+                    f"Put Position {self.atm_put_fill} is no longer in open orders — might be cancelled or filled.")
+
+                positions = await self.broker.get_positions()
+                put_position = next(
+                    (pos for pos in positions if getattr(pos, "orderId", None) == self.atm_put_id),
+                    None
+                )
+                if put_position:
+                    fill_price = getattr(put_position, "avgFillPrice", 0)
+                    if fill_price > 0:
+                        self.atm_put_fill = fill_price
+                        await self.dprint(f"Fill price found from positions: {self.atm_put_fill}")
+
                 break
 
             await asyncio.sleep(1)
@@ -343,8 +369,8 @@ class Strategy:
         temp_percentage = 1
         stp_side = "BUY" if side == "SELL" else "SELL"
         self.put_stp_id = await self.broker.place_stp_order(contract=self.put_contract, side=stp_side,
-                                                       quantity=quantity,
-                                                       sl=self.atm_put_sl)
+                                                            quantity=quantity,
+                                                            sl=self.atm_put_sl)
         while self.atm_put_fill > 0:
             premium_price = await self.broker.get_latest_premium_price(
                 symbol=creds.instrument,
@@ -539,6 +565,7 @@ class Strategy:
                 else:
                     creds.close_hedges = False
                     await self.dprint("Hedges Disabled")
+
                 await asyncio.gather(
                     self.call_side_handler(),
                     self.put_side_handler(),
@@ -550,7 +577,6 @@ class Strategy:
 
                 if not self.should_continue:
                     exit()
-
 
 
 if __name__ == "__main__":

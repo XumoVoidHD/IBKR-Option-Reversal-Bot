@@ -103,10 +103,10 @@ class Strategy:
         leg_target_price = 0
         if side == "SELL":
             leg_target_price = closest_current_price + (creds.strike_interval * creds.ATM_CALL_SELL)
-            print(f"Position: {leg_target_price}")
+            await self.dprint(f"Position: {leg_target_price}")
         elif side == "BUY":
             leg_target_price = closest_current_price + (creds.strike_interval * creds.ATM_CALL_BUY)
-            print(f"Position: {leg_target_price}")
+            await self.dprint(f"Position: {leg_target_price}")
 
         hedge_target_price = closest_current_price + (creds.strike_interval * creds.OTM_CALL_HEDGE)
 
@@ -123,12 +123,12 @@ class Strategy:
                 if matching_order:
                     self.otm_call_fill = matching_order.orderStatus.avgFillPrice
                     if self.otm_call_fill > 0:
-                        print(f"Call hedge {self.otm_call_fill} is filled.")
+                        await self.dprint(f"Call hedge {self.otm_call_fill} is filled.")
                         break
                     else:
-                        print("Call hedge still open but not filled")
+                        await self.dprint("Call hedge still open but not filled")
                 else:
-                    print(
+                    await self.dprint(
                         f"Call hedge {self.otm_call_fill} is no longer in open orders — might be cancelled or filled.")
                     break
 
@@ -151,12 +151,25 @@ class Strategy:
             if matching_order:
                 self.atm_call_fill = matching_order.orderStatus.avgFillPrice
                 if self.atm_call_fill > 0:
-                    print(f"Call Position {self.atm_call_id} is filled.")
+                    await self.dprint(f"Call Position {self.atm_call_id} is filled.")
                     break
                 else:
-                    print("Call Position still open but not filled")
+                    await self.dprint("Call Position still open but not filled")
             else:
-                print(f"Call Position {self.atm_call_id} is no longer in open orders — might be cancelled or filled.")
+                await self.dprint(
+                    f"Call Position {self.atm_call_id} is no longer in open orders — might be cancelled or filled.")
+
+                positions = await self.broker.get_positions()
+                call_position = next(
+                    (pos for pos in positions if getattr(pos, "orderId", None) == self.atm_call_id),
+                    None
+                )
+                if call_position:
+                    fill_price = getattr(call_position, "avgFillPrice", 0)
+                    if fill_price > 0:
+                        self.atm_call_fill = fill_price
+                        await self.dprint(f"Fill price found from positions: {self.atm_call_fill}")
+
                 break
 
             await asyncio.sleep(1)
@@ -251,10 +264,10 @@ class Strategy:
         leg_target_price = 0
         if side == "SELL":
             leg_target_price = closest_current_price - (creds.strike_interval * creds.ATM_PUT_SELL)
-            print(f"Position: {leg_target_price}")
+            await self.dprint(f"Position: {leg_target_price}")
         elif side == "BUY":
             leg_target_price = closest_current_price - (creds.strike_interval * creds.ATM_PUT_BUY)
-            print(f"Position: {leg_target_price}")
+            await self.dprint(f"Position: {leg_target_price}")
         hedge_target_price = closest_current_price - (creds.strike_interval * creds.OTM_PUT_HEDGE)
 
         await self.dprint(f"Leg: {leg_target_price} Hedge: {leg_target_price}")
@@ -270,12 +283,12 @@ class Strategy:
                 if matching_order:
                     self.otm_put_fill = matching_order.orderStatus.avgFillPrice
                     if self.otm_put_fill > 0:
-                        print(f"Put Hedge {self.otm_put_fill} is filled.")
+                        await self.dprint(f"Put Hedge {self.otm_put_fill} is filled.")
                         break
                     else:
-                        print("Put Hedge still open but not filled")
+                        await self.dprint("Put Hedge still open but not filled")
                 else:
-                    print(f"Put Hedge {self.otm_put_fill} is no longer in open orders — might be cancelled or filled.")
+                    await self.dprint(f"Put Hedge {self.otm_put_fill} is no longer in open orders — might be cancelled or filled.")
                     break
 
                 await asyncio.sleep(1)
@@ -296,14 +309,28 @@ class Strategy:
             matching_order = next((trade for trade in open_orders if trade.order.orderId == self.atm_put_id), None)
 
             if matching_order:
+                await self.dprint("Put Position order place checking")
                 self.atm_put_fill = matching_order.orderStatus.avgFillPrice
                 if self.atm_put_fill > 0:
-                    print(f"Put Position {self.atm_put_fill} is filled.")
+                    await self.dprint(f"Put Position {self.atm_put_fill} is filled.")
                     break
                 else:
-                    print("Put Position still open but not filled")
+                    await self.dprint("Put Position still open but not filled")
             else:
-                print(f"Put Position {self.atm_put_fill} is no longer in open orders — might be cancelled or filled.")
+                await self.dprint(
+                    f"Put Position {self.atm_put_fill} is no longer in open orders — might be cancelled or filled.")
+
+                positions = await self.broker.get_positions()
+                put_position = next(
+                    (pos for pos in positions if getattr(pos, "orderId", None) == self.atm_put_id),
+                    None
+                )
+                if put_position:
+                    fill_price = getattr(put_position, "avgFillPrice", 0)
+                    if fill_price > 0:
+                        self.atm_put_fill = fill_price
+                        await self.dprint(f"Fill price found from positions: {self.atm_put_fill}")
+
                 break
 
             await asyncio.sleep(1)
